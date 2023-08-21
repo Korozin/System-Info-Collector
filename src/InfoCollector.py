@@ -197,11 +197,14 @@ class SystemInfoCollector:
         self.system_info["Screen Resolution"] = self.get_display_resolution()
         self.system_info["System Memory"] = self.get_ram_info()
         self.system_info["Disk Usage"] = self.get_disk_usage()
+        self.system_info["Battery Info"] = self.get_battery_info()
 
         # Hardware Info
         self.system_info["CPU Hash"] = self.get_cpu_hash()
         self.system_info["GPU Info"] = self.get_gpu_info()
         self.system_info["BIOS Info"] = self.get_bios_info()
+        self.system_info["Processor Info"] = self.get_processor_info()
+        self.system_info["Processor Architecture"] = self.get_processor_architecture()
 
         # Get network information
         self.system_info["Network Interface(s)"] = list(psutil.net_if_stats().keys())
@@ -209,10 +212,11 @@ class SystemInfoCollector:
         self.system_info["Public IP"] = self.get_public_ip()
         self.system_info["MAC Address"] = self.get_mac_address()
 
+
     def print_system_info(self, keys=None):
         category_headers = {
-            "General Sys Info": ["Computer Name", "OS Version", "Uptime", "Screen Resolution", "System Memory", "Disk Usage"],
-            "Hardware Info": ["CPU Hash", "GPU Info", "BIOS Info"],
+            "General Sys Info": ["Computer Name", "OS Version", "Uptime", "Screen Resolution", "System Memory", "Disk Usage", "Battery Info"],
+            "Hardware Info": ["CPU Hash", "GPU Info", "BIOS Info", "Processor Info", "Processor Architecture"],
             "Network Information": ["Network Interface(s)", "Local IPv4", "Public IP", "MAC Address"]
         }
 
@@ -241,6 +245,29 @@ class SystemInfoCollector:
                                 print(key + ":", value)
 
                 print()  # Print a newline after each category
+
+    def get_battery_info(self):
+        battery = psutil.sensors_battery()
+        if battery:
+            percent = battery.percent
+            power_plugged = battery.power_plugged
+            time_left = battery.secsleft if not power_plugged else None
+            status = "Charging" if power_plugged else "Discharging"
+            return {
+                "Battery Percentage": f"{percent}%",
+                "Status": status,
+                "Time Left": f"{time_left // 3600} hours {time_left % 3600 // 60} minutes" if time_left is not None else "N/A"
+            }
+        else:
+            return {"Battery Status": "Battery information not available"}
+
+    def get_processor_info(self):
+        return platform.processor()
+
+    def get_processor_architecture(self):
+        arch_raw = platform.machine()
+        arch = "x86_64" if "64" in arch_raw else "x86"
+        return arch
     ### Output Info ###
 
 
@@ -249,5 +276,5 @@ if __name__ == "__main__":
     collector.collect_system_info()
     
     # Specify the keys you want to print
-    keys_to_print = ["all"] # You can also specify specific keys like just ["OS Version"]
+    keys_to_print = ["all", "Battery Info", "Processor Architecture"] # You can also specify specific keys like just ["OS Version"]
     collector.print_system_info(keys_to_print)
