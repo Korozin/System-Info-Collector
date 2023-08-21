@@ -1,3 +1,4 @@
+import dns.resolver
 import hashlib
 import platform
 import subprocess
@@ -206,6 +207,16 @@ class SystemInfoCollector:
     
         return None
 
+    def get_dns_address(self):
+        try:
+            resolver = dns.resolver.Resolver()
+            dns_servers = resolver.nameservers
+            return ', '.join(dns_servers) if len(dns_servers) > 1 else dns_servers[0] if len(dns_servers) == 1 else None
+        except dns.resolver.NoNameservers as e:
+            print("Error retrieving DNS address(es):", str(e))
+
+        return None
+
     def get_mac_address(self):
         return ":".join(hex(uuid.getnode())[2:].zfill(12)[i: i + 2] for i in range(0, 12, 2))
     ### Network Info Functions ###
@@ -233,6 +244,7 @@ class SystemInfoCollector:
         self.system_info["Network Interface(s)"] = list(psutil.net_if_stats().keys())
         self.system_info["Local IPv4"] = self.get_local_ip()
         self.system_info["Public IP"] = self.get_public_ip()
+        self.system_info["DNS Address(es)"] = self.get_dns_address()
         self.system_info["MAC Address"] = self.get_mac_address()
 
 
@@ -240,7 +252,7 @@ class SystemInfoCollector:
         category_headers = {
             "General Sys Info": ["Computer Name", "OS Version", "Uptime", "Screen Resolution", "System Memory", "Disk Usage", "Battery Info"],
             "Hardware Info": ["CPU Hash", "GPU Info", "BIOS Info", "Processor Info", "Processor Architecture"],
-            "Network Information": ["Network Interface(s)", "Local IPv4", "Public IP", "MAC Address"]
+            "Network Information": ["Network Interface(s)", "Local IPv4", "Public IP", "DNS Address(es)", "MAC Address"]
         }
 
         for category, category_keys in category_headers.items():
