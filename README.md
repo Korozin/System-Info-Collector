@@ -16,4 +16,6 @@ This tool supports the following:
 - Local IPv4
 - Public IPv4
 - MAC Address
-
+- Battery Info -> (ty [@ambr0sial](https://github.com/ambr0sial) <3)
+- Processor Info -> (ty [@ambr0sial](https://github.com/ambr0sial) <3)
+- Architecture Info -> (ty [@ambr0sial](https://github.com/ambr0sial) <3)
