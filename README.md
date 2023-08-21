@@ -15,6 +15,7 @@ This tool supports the following:
 - Network Interfaces
 - Local IPv4
 - Public IPv4
+- DNS Address(es)
 - MAC Address
 - Battery Info -> (ty [@ambr0sial](https://github.com/ambr0sial) <3)
 - Processor Info -> (ty [@ambr0sial](https://github.com/ambr0sial) <3)
