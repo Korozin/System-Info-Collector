@@ -56,7 +56,7 @@ class SystemInfoCollector:
         ram_used = psutil.virtual_memory().used
         ram_percent_used = (ram_used / ram_total) * 100
         return "{:.2f} GiB / {:.2f} GiB ({:.2f}%)".format(
-            ram_total / (1024 ** 3), ram_used / (1024 ** 3), ram_percent_used
+            ram_used / (1024 ** 3), ram_total / (1024 ** 3), ram_percent_used
         )
 
     def get_disk_usage(self):
@@ -65,9 +65,9 @@ class SystemInfoCollector:
         used_space = round(disk_usage.used / (1024 ** 3), 2)
         free_space = round(disk_usage.free / (1024 ** 3), 2)
         return {
-            "Total Disk Space": f"{total_space} GB",
-            "Used Disk Space": f"{used_space} GB",
-            "Free Disk Space": f"{free_space} GB"
+            "   Total Disk Space": f"{total_space} GB",
+            "   Used Disk Space": f"{used_space} GB",
+            "   Free Disk Space": f"{free_space} GB"
         }
     ### System Info Functions ###
 
@@ -134,8 +134,8 @@ class SystemInfoCollector:
                 w = wmi.WMI()
                 for bios in w.Win32_BIOS():
                     bios_info = {
-                        "BIOS Serial Number": bios.SerialNumber.strip(),
-                        "BIOS Version": bios.SMBIOSBIOSVersion.strip()
+                        "   BIOS Serial Number": bios.SerialNumber.strip(),
+                        "   BIOS Version": bios.SMBIOSBIOSVersion.strip()
                     }
                     return bios_info
             except Exception as e:
@@ -147,14 +147,37 @@ class SystemInfoCollector:
                 with open("/sys/class/dmi/id/bios_version", "r") as f:
                     bios_version = f.read().strip()
                 bios_info = {
-                    "BIOS Serial Number": bios_serial,
-                    "BIOS Version": bios_version
+                    "   BIOS Serial Number": bios_serial,
+                    "   BIOS Version": bios_version
                 }
                 return bios_info
             except Exception as e:
                 print("Error retrieving BIOS information: Does this script have permissions?")
         else:
             print("Unsupported platform: " + system)
+
+    def get_battery_info(self):
+        battery = psutil.sensors_battery()
+        if battery:
+            percent = battery.percent
+            power_plugged = battery.power_plugged
+            time_left = battery.secsleft if not power_plugged else None
+            status = "Charging" if power_plugged else "Discharging"
+            return {
+                "   Battery Percentage": f"{percent}%",
+                "   Status": status,
+                "   Time Left": f"{time_left // 3600} hours {time_left % 3600 // 60} minutes" if time_left is not None else "N/A"
+            }
+        else:
+            return {"Battery Status": "Battery information not available"}
+
+    def get_processor_info(self):
+        return platform.processor()
+
+    def get_processor_architecture(self):
+        arch_raw = platform.machine()
+        arch = "x86_64" if "64" in arch_raw else "x86"
+        return arch
     ### Hardware Info Functions ###
 
 
@@ -245,29 +268,6 @@ class SystemInfoCollector:
                                 print(key + ":", value)
 
                 print()  # Print a newline after each category
-
-    def get_battery_info(self):
-        battery = psutil.sensors_battery()
-        if battery:
-            percent = battery.percent
-            power_plugged = battery.power_plugged
-            time_left = battery.secsleft if not power_plugged else None
-            status = "Charging" if power_plugged else "Discharging"
-            return {
-                "Battery Percentage": f"{percent}%",
-                "Status": status,
-                "Time Left": f"{time_left // 3600} hours {time_left % 3600 // 60} minutes" if time_left is not None else "N/A"
-            }
-        else:
-            return {"Battery Status": "Battery information not available"}
-
-    def get_processor_info(self):
-        return platform.processor()
-
-    def get_processor_architecture(self):
-        arch_raw = platform.machine()
-        arch = "x86_64" if "64" in arch_raw else "x86"
-        return arch
     ### Output Info ###
 
 
@@ -276,5 +276,5 @@ if __name__ == "__main__":
     collector.collect_system_info()
     
     # Specify the keys you want to print
-    keys_to_print = ["all", "Battery Info", "Processor Architecture"] # You can also specify specific keys like just ["OS Version"]
+    keys_to_print = ["all"] # You can also specify specific keys like just ["OS Version"]
     collector.print_system_info(keys_to_print)
